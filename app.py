@@ -5,38 +5,45 @@ import seaborn as sns
 sns.set()
 
 
-st.title('World Cites')
-df = pd.read_csv('worldcities.csv')
+st.title('California Housing Data(1990)')
+df = pd.read_csv('housing.csv')
 
 # note that you have to use 0.0 and 40.0 given that the data type of population is float
-population_filter = st.slider('Minimal Population (Millions):', 0.0, 40.0, 3.6)  # min, max, default
+price_filter = st.slider('Minimal Median House Price', 0, 500001, 20000)  # min, max, default
 
 # create a multi select
-capital_filter = st.sidebar.multiselect(
-     'Capital Selector',
-     df.capital.unique(),  # options
-     df.capital.unique())  # defaults
+location_filter = st.sidebar.multiselect(
+     'Choose the location type'
+     df.ocean_proximity.unique(),  # options
+     df.ocean_proximity.unique())  # defaults
 
-# create a input form
-form = st.sidebar.form("country_form")
-country_filter = form.text_input('Country Name (enter ALL to reset)', 'ALL')
-form.form_submit_button("Apply")
+# 显示radio button用于选择收入等级
+income_level = st.sidebar.radio(
+    "select income level:",
+    ('Low','Medium','High')
+)
 
 
 # filter by population
-df = df[df.population >= population_filter]
+df = df[df.median_house_value >= price_filter]
 
 # filter by capital
-df = df[df.capital.isin(capital_filter)]
+df = df[df.ocean_proximity.isin(location_filter)]
 
-if country_filter!='ALL':
-    df = df[df.country == country_filter]
+# 基于选择的收入等级进行筛选
+if income_level == 'Low(<=2.5)':
+    filtered_df = df[df['median_income'] <= 2.5]
+elif income_level == 'Medium(>2.5 & < 4.5)':
+    filtered_df = df[(df['median_income'] > 2.5) & (df['median_income'] < 4.5)]
+else:
+    filtered_df = df[df['median_income'] > 4.5]
+
 
 # show on map
-st.map(df)
+st.map(filtered_df)
 
-# show dataframe
-st.subheader('City Details:')
+# Display a subheader for the histogran
+st.subheader('median house price')
 st.write(df[['city', 'country', 'population']])
 
 # show the plot
